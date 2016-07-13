@@ -1,0 +1,78 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        dependencies {
+            classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.7'
+        }
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+apply plugin: 'com.google.protobuf'
+ 
+group = 'com.github'
+version = '0.0.1'
+
+mainClassName="ZipkinDemo"
+
+dependencies {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url { "http://oss.jfrog.org/artifactory/oss-snapshot-local" }
+        }
+    }
+
+    compile "io.grpc:grpc-all:$grpcVersion"
+    compile "io.zipkin.brave:brave-grpc:$braveVersion"
+    compile "io.zipkin.brave:brave-spancollector-http:$braveVersion"
+
+    testCompile "junit:junit:4.12"
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:$protoVersion"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+    // Configure the output dir to be named so it's sorted after "src" to play nicely with IntelliJ 2016+.
+    generatedFilesBaseDir = file("$projectDir/src_generated_protos")
+}
+
+idea {
+    module {
+        def generatedProtosMainGrpcDir = file("${protobuf.generatedFilesBaseDir}/main/grpc")
+        def generatedProtosMainJavaDir = file("${protobuf.generatedFilesBaseDir}/main/java")
+        def generatedProtosTestGrpcDir = file("${protobuf.generatedFilesBaseDir}/test/grpc")
+        def generatedProtosTestJavaDir = file("${protobuf.generatedFilesBaseDir}/test/java")
+
+        sourceDirs += generatedProtosMainGrpcDir
+        sourceDirs += generatedProtosMainJavaDir
+        testSourceDirs += generatedProtosTestGrpcDir
+        testSourceDirs += generatedProtosTestJavaDir
+
+        generatedSourceDirs += generatedProtosMainGrpcDir
+        generatedSourceDirs += generatedProtosMainJavaDir
+        generatedSourceDirs += generatedProtosTestGrpcDir
+        generatedSourceDirs += generatedProtosTestJavaDir
+    }
+}
+
+tasks.withType(JavaExec) {
+    systemProperties System.properties
+}

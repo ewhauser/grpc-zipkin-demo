@@ -1,0 +1,3 @@
+rootProject.name = 'grpc-zipkin-demo'
+include 'user'
+include 'kv'
