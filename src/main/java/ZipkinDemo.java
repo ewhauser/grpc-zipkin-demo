@@ -19,9 +19,11 @@ import java.util.Iterator;
 
 public class ZipkinDemo {
 
+    private static String DOCKER_IP;
+
     public static void main(String args[]) throws Exception {
-        String dockerIp = System.getProperty("docker.ip");
-        if (Strings.isNullOrEmpty(dockerIp)) {
+        DOCKER_IP = System.getProperty("docker.ip");
+        if (Strings.isNullOrEmpty(DOCKER_IP)) {
             System.err.println("Please set docker.ip environment variable before running");
             System.exit(-1);
         }
@@ -64,7 +66,8 @@ public class ZipkinDemo {
     private static Brave brave(String serviceName) {
         return new Brave.Builder(serviceName)
             .traceSampler(Sampler.ALWAYS_SAMPLE)
-            .spanCollector(HttpSpanCollector.create("http://192.168.99.100:9411", new EmptySpanCollectorMetricsHandler()))
+            .spanCollector(HttpSpanCollector.create(String.format("http://%s:9411", DOCKER_IP),
+                new EmptySpanCollectorMetricsHandler()))
             .build();
     }
 
